@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Ads Analytics - Аналитика рекламы</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>FB Analytics</h2>
+                <div class="theme-toggle">
+                    <button id="themeToggle" class="btn btn--sm">🌓</button>
+                </div>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#dashboard" class="menu-link active" data-section="dashboard">📊 Панель управления</a></li>
+                <li><a href="#creatives" class="menu-link" data-section="creatives">🎨 Анализ креативов</a></li>
+                <li><a href="#chat" class="menu-link" data-section="chat">💬 AI Чат</a></li>
+                <li><a href="#import" class="menu-link" data-section="import">📁 Импорт данных</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h1>Панель управления</h1>
+                    <button id="exportData" class="btn btn--secondary">Экспорт данных</button>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="summary-grid">
+                    <div class="card summary-card">
+                        <div class="card__body">
+                            <h3>Общие затраты</h3>
+                            <div class="metric-value" id="totalSpend">$0.00</div>
+                            <div class="metric-change">за весь период</div>
+                        </div>
+                    </div>
+                    <div class="card summary-card">
+                        <div class="card__body">
+                            <h3>Всего результатов</h3>
+                            <div class="metric-value" id="totalResults">0</div>
+                            <div class="metric-change">конверсии</div>
+                        </div>
+                    </div>
+                    <div class="card summary-card">
+                        <div class="card__body">
+                            <h3>Средний CTR</h3>
+                            <div class="metric-value" id="avgCTR">0.00%</div>
+                            <div class="metric-change">клики по ссылкам</div>
+                        </div>
+                    </div>
+                    <div class="card summary-card">
+                        <div class="card__body">
+                            <h3>Средний CPC</h3>
+                            <div class="metric-value" id="avgCPC">$0.00</div>
+                            <div class="metric-change">стоимость клика</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>CTR по креативам</h3>
+                            <canvas id="ctrChart" height="300"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Распределение расходов</h3>
+                            <canvas id="spendChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Table -->
+                <div class="card">
+                    <div class="card__body">
+                        <h3>Производительность креативов</h3>
+                        <div class="table-container">
+                            <table id="performanceTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>Статус</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                        <th>Затраты</th>
+                                        <th>Результаты</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Creative Analysis Section -->
+            <section id="creatives" class="content-section">
+                <div class="section-header">
+                    <h1>Анализ креативов</h1>
+                    <div class="filter-controls">
+                        <select id="statusFilter" class="form-control">
+                            <option value="">Все статусы</option>
+                            <option value="active">Активные</option>
+                            <option value="not_delivering">Не показываются</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="creativesGrid" class="creatives-grid"></div>
+            </section>
+
+            <!-- AI Chat Section -->
+            <section id="chat" class="content-section">
+                <div class="section-header">
+                    <h1>AI Консультант по рекламе</h1>
+                    <div class="api-status" id="apiStatus">
+                        <span class="status status--info">API не настроен</span>
+                    </div>
+                </div>
+
+                <div class="chat-container">
+                    <div class="chat-config card">
+                        <div class="card__body">
+                            <h3>Настройка API</h3>
+                            <div class="form-group">
+                                <label class="form-label" for="apiKey">Perplexity API Key:</label>
+                                <input type="password" id="apiKey" class="form-control" placeholder="pplx-...">
+                            </div>
+                            <button id="saveApiKey" class="btn btn--primary">Сохранить ключ</button>
+                        </div>
+                    </div>
+
+                    <div class="chat-interface">
+                        <div class="chat-messages" id="chatMessages"></div>
+                        
+                        <div class="quick-questions">
+                            <h4>Быстрые вопросы:</h4>
+                            <div class="quick-buttons">
+                                <button class="btn btn--outline btn--sm quick-question" data-question="Проанализируй производительность моих креативов и дай рекомендации">Анализ креативов</button>
+                                <button class="btn btn--outline btn--sm quick-question" data-question="Какие креативы показывают признаки усталости аудитории?">Усталость креативов</button>
+                                <button class="btn btn--outline btn--sm quick-question" data-question="Дай советы по оптимизации стоимости клика">Оптимизация CPC</button>
+                                <button class="btn btn--outline btn--sm quick-question" data-question="Какие креативы стоит масштабировать?">Масштабирование</button>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-container">
+                            <div class="flex gap-8">
+                                <input type="text" id="chatInput" class="form-control" placeholder="Задайте вопрос об оптимизации рекламы...">
+                                <button id="sendMessage" class="btn btn--primary">Отправить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Import Section -->
+            <section id="import" class="content-section">
+                <div class="section-header">
+                    <h1>Импорт данных</h1>
+                </div>
+
+                <div class="import-grid">
+                    <!-- CSV Upload -->
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Загрузка CSV файла</h3>
+                            <p>Загрузите CSV файл из Facebook Ads Manager</p>
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <div class="upload-content">
+                                    <div class="upload-icon">📁</div>
+                                    <p>Перетащите CSV файл сюда или</p>
+                                    <button class="btn btn--secondary" id="selectFileBtn">Выберите файл</button>
+                                    <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                                </div>
+                            </div>
+                            <div id="uploadProgress" class="upload-progress hidden">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <p>Обработка файла...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sample Data -->
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Демо данные</h3>
+                            <p>Загрузите образцы данных для тестирования</p>
+                            <button id="loadSampleData" class="btn btn--primary btn--full-width">Загрузить демо данные</button>
+                        </div>
+                    </div>
+
+                    <!-- Clear Data -->
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Очистить данные</h3>
+                            <p>Удалить все загруженные данные</p>
+                            <button id="clearData" class="btn btn--outline btn--full-width">Очистить все данные</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Preview -->
+                <div id="dataPreview" class="card hidden">
+                    <div class="card__body">
+                        <h3>Предварительный просмотр данных</h3>
+                        <div id="previewContent"></div>
+                        <div class="flex gap-8 mt-8">
+                            <button id="confirmImport" class="btn btn--primary">Подтвердить импорт</button>
+                            <button id="cancelImport" class="btn btn--secondary">Отменить</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p>Обработка данных...</p>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="confirmTitle">Подтверждение</h3>
+            <p id="confirmMessage">Вы уверены?</p>
+            <div class="modal-actions">
+                <button id="confirmAction" class="btn btn--primary">Да</button>
+                <button id="cancelAction" class="btn btn--secondary">Отменить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
