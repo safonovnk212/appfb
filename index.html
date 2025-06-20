@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Ads Analytics - Аналитика рекламных кампаний</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-16">
+                    <h1 class="header__title">FB Ads Analytics</h1>
+                    <nav class="header__nav">
+                        <button class="nav-btn nav-btn--active" data-tab="dashboard">Дашборд</button>
+                        <button class="nav-btn" data-tab="campaigns">Кампании</button>
+                        <button class="nav-btn" data-tab="creatives">Креативы</button>
+                        <button class="nav-btn" data-tab="ai-tips">AI Советы</button>
+                        <button class="nav-btn" data-tab="settings">Настройки</button>
+                    </nav>
+                </div>
+                <div class="flex items-center gap-16">
+                    <button class="theme-toggle" id="themeToggle">🌙</button>
+                    <button class="btn btn--primary" id="addCampaignBtn">+ Добавить кампанию</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Dashboard Tab -->
+            <div class="tab-content tab-content--active" id="dashboard">
+                <div class="dashboard-header">
+                    <h2>Обзор кампаний</h2>
+                    <div class="flex items-center gap-16">
+                        <select class="form-control period-selector" id="periodSelector">
+                            <option value="7">Последние 7 дней</option>
+                            <option value="30">Последние 30 дней</option>
+                            <option value="90">Последние 90 дней</option>
+                        </select>
+                        <button class="btn btn--outline" id="exportBtn">Экспорт данных</button>
+                    </div>
+                </div>
+
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state__content">
+                        <h3>Добро пожаловать в FB Ads Analytics</h3>
+                        <p>Начните анализ, добавив свою первую рекламную кампанию</p>
+                        <div class="empty-state__actions">
+                            <button class="btn btn--primary" id="addFromUtmBtn">Добавить из UTM ссылки</button>
+                            <button class="btn btn--secondary" id="uploadCsvBtn">Загрузить CSV</button>
+                            <button class="btn btn--outline" id="connectFbBtn">Подключить Facebook API</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-content hidden" id="dashboardContent">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <h4>Общие расходы</h4>
+                            <div class="metric-value" id="totalSpend">$0.00</div>
+                            <div class="metric-change" id="spendChange">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <h4>Средний CPM</h4>
+                            <div class="metric-value" id="avgCpm">$0.00</div>
+                            <div class="metric-change" id="cpmChange">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <h4>Средний CPC</h4>
+                            <div class="metric-value" id="avgCpc">$0.00</div>
+                            <div class="metric-change" id="cpcChange">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <h4>Средний CTR</h4>
+                            <div class="metric-value" id="avgCtr">0.00%</div>
+                            <div class="metric-change" id="ctrChange">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <h4>Средний ROAS</h4>
+                            <div class="metric-value" id="avgRoas">0.00</div>
+                            <div class="metric-change" id="roasChange">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <h4>Конверсии</h4>
+                            <div class="metric-value" id="totalConversions">0</div>
+                            <div class="metric-change" id="conversionsChange">-</div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h4>Динамика расходов</h4>
+                            <canvas id="spendChart" height="300"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h4>Производительность по кампаниям</h4>
+                            <canvas id="campaignChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campaigns Tab -->
+            <div class="tab-content" id="campaigns">
+                <div class="campaigns-header">
+                    <h2>Управление кампаниями</h2>
+                    <button class="btn btn--primary" id="addCampaignBtn2">+ Добавить кампанию</button>
+                </div>
+                <div class="campaigns-list" id="campaignsList">
+                    <div class="empty-campaigns">
+                        <p>Кампании не найдены. Добавьте первую кампанию для начала анализа.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Creatives Tab -->
+            <div class="tab-content" id="creatives">
+                <div class="creatives-header">
+                    <h2>Анализ креативов</h2>
+                    <div class="creatives-filters">
+                        <select class="form-control" id="campaignFilter">
+                            <option value="">Все кампании</option>
+                        </select>
+                        <select class="form-control" id="statusFilter">
+                            <option value="">Все статусы</option>
+                            <option value="active">Активные</option>
+                            <option value="paused">Приостановленные</option>
+                            <option value="fatigue">Усталость</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="creatives-grid" id="creativesGrid">
+                    <div class="empty-creatives">
+                        <p>Креативы не найдены. Добавьте кампании для анализа креативов.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Tips Tab -->
+            <div class="tab-content" id="ai-tips">
+                <div class="ai-tips-header">
+                    <h2>AI Рекомендации</h2>
+                    <button class="btn btn--primary" id="generateTipsBtn">Обновить рекомендации</button>
+                </div>
+                <div class="ai-tips-content" id="aiTipsContent">
+                    <div class="empty-tips">
+                        <p>Добавьте кампании для получения персонализированных AI рекомендаций.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings">
+                <div class="settings-content">
+                    <h2>Настройки</h2>
+                    <div class="settings-section">
+                        <h3>Facebook API</h3>
+                        <div class="form-group">
+                            <label class="form-label">Access Token</label>
+                            <input type="text" class="form-control" id="fbAccessToken" placeholder="Введите Access Token">
+                        </div>
+                        <button class="btn btn--primary" id="saveFbTokenBtn">Сохранить токен</button>
+                    </div>
+                    <div class="settings-section">
+                        <h3>Уведомления</h3>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <input type="checkbox" id="emailNotifications"> Email уведомления
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <input type="checkbox" id="alertThresholds"> Оповещения о превышении порогов
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Campaign Modal -->
+    <div class="modal" id="addCampaignModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Добавить кампанию</h3>
+                <button class="modal-close" id="closeAddModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-tabs">
+                    <button class="modal-tab modal-tab--active" data-method="utm">UTM Ссылка</button>
+                    <button class="modal-tab" data-method="csv">CSV Файл</button>
+                    <button class="modal-tab" data-method="api">Facebook API</button>
+                </div>
+
+                <!-- UTM Method -->
+                <div class="method-content method-content--active" id="utmMethod">
+                    <div class="form-group">
+                        <label class="form-label">UTM Ссылка</label>
+                        <textarea class="form-control" id="utmUrl" rows="3" placeholder="Вставьте UTM ссылку с параметрами Facebook..."></textarea>
+                    </div>
+                    <div class="utm-preview" id="utmPreview"></div>
+                    <button class="btn btn--primary btn--full-width" id="parseUtmBtn">Обработать UTM</button>
+                </div>
+
+                <!-- CSV Method -->
+                <div class="method-content" id="csvMethod">
+                    <div class="form-group">
+                        <label class="form-label">CSV файл из Facebook Ads Manager</label>
+                        <input type="file" class="form-control" id="csvFile" accept=".csv">
+                    </div>
+                    <div class="csv-preview" id="csvPreview"></div>
+                    <button class="btn btn--primary btn--full-width" id="uploadCsvDataBtn">Загрузить данные</button>
+                </div>
+
+                <!-- API Method -->
+                <div class="method-content" id="apiMethod">
+                    <div class="form-group">
+                        <label class="form-label">Account ID</label>
+                        <input type="text" class="form-control" id="accountId" placeholder="act_123456789">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Campaign ID (опционально)</label>
+                        <input type="text" class="form-control" id="campaignId" placeholder="Оставьте пустым для всех кампаний">
+                    </div>
+                    <button class="btn btn--primary btn--full-width" id="fetchFromApiBtn">Получить данные</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Creative Detail Modal -->
+    <div class="modal" id="creativeModal">
+        <div class="modal-content modal-content--large">
+            <div class="modal-header">
+                <h3 id="creativeModalTitle">Анализ креатива</h3>
+                <button class="modal-close" id="closeCreativeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="creativeModalBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="toast-message" id="toastMessage"></span>
+            <button class="toast-close" id="toastClose">&times;</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
